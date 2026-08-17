@@ -1,0 +1,166 @@
+generated: '2026-08-17'
+method: searched
+source: https://phoenix.acinq.co/server/api
+docs:
+- https://phoenix.acinq.co/server/api
+- https://acinq.github.io/eclair/
+notes: >-
+  Cross-cutting request/response semantics for both ACINQ APIs, read from ACINQ's own
+  published references. IMPORTANT: neither API supports idempotency, so no
+  `type: Idempotency` pointer is emitted. phoenixd's `externalId` parameter links an
+  invoice to an external system for later lookup, but it is not an idempotency key —
+  ACINQ does not document replay-safe retry semantics on any write endpoint, and
+  /payinvoice, /payoffer and /sendtoaddress move funds on every call.
+apis:
+- name: phoenixd HTTP API
+  base_url: http://{phoenixd_host}:9740
+  documented_default_bind: 127.0.0.1:9740
+  bind_flags: [--http-bind-ip, --http-bind-port]
+  authentication:
+    style: HTTP Basic, empty username, locally generated password
+    tiers: [http-password (full), http-password-limited-access (read + invoice creation)]
+    ref: authentication/acinq-authentication.yml
+  request_format:
+    write: application/x-www-form-urlencoded (curl -d)
+    read: query string parameters on GET
+    methods_used: [GET, POST]
+  response_format:
+    content: JSON objects, JSON arrays, or a bare string (txid, offer, Lightning address)
+    note: >-
+      Several endpoints return a bare unquoted string rather than JSON — /sendtoaddress
+      and /bumpfee return a transaction id, /createoffer returns an lno1… offer,
+      /getlnaddress returns an address, /lnurlauth returns "authentication success".
+      A client cannot assume application/json on every route.
+  idempotency:
+    supported: false
+    header: null
+    note: >-
+      No idempotency key, no request deduplication, no documented retry semantics.
+      `externalId` (on /createinvoice) is a correlation identifier for external systems
+      and a filter on GET /payments/incoming — not a replay guard.
+  pagination:
+    style: offset
+    params: [limit, offset, from, to]
+    defaults: {limit: 20, offset: 0, from: 0, to: now}
+    applies_to: [GET /payments/incoming, GET /payments/outgoing, POST /export]
+    response_shape: bare JSON array (no envelope, no total, no next cursor)
+    time_unit: milliseconds since epoch
+  filtering:
+    params: [all, externalId]
+    note: '`all=true` widens the result set to unpaid invoices (incoming) or failed payments (outgoing).'
+  field_expansion: {supported: false}
+  metadata:
+    fields: [externalId, description, descriptionHash, message, payerNote]
+    note: >-
+      `message`/`payerNote` carry a free-text note to the counterparty on Bolt12 and
+      Lightning-address payments; `externalId` is the integration hook.
+  request_tracing:
+    request_id_header: null
+    note: >-
+      No request-id or correlation header is documented. Payment-level correlation is
+      done with the domain identifiers `paymentId` (UUID, outgoing) and `paymentHash`
+      (32-byte hex, both directions).
+  versioning:
+    scheme: software-release
+    current: 0.9.0
+    note: >-
+      There is no API version in the path, a header or a date. The reference states it
+      is "up-to-date for version 0.9.0" — the API contract is versioned by the phoenixd
+      binary the operator installed, which means the operator, not ACINQ, controls the
+      version they are calling. No /v1 prefix exists.
+    ref: lifecycle/acinq-lifecycle.yml
+  error_envelope:
+    documented: false
+    note: >-
+      The phoenixd reference documents no error responses at all — no status codes, no
+      error body shape. See errors/acinq-problem-types.yml.
+  rate_limit_signaling:
+    headers: []
+    note: >-
+      No rate limits and no rate-limit headers are documented. The daemon is the
+      operator's own process on the operator's own host, so there is no vendor-imposed
+      quota; the real limits are economic (liquidity/fee credit) and are described in
+      plans/acinq-plans-pricing.yml.
+  amounts:
+    unit: satoshi
+    fields: [amountSat, balanceSat, feeCreditSat, routingFeeSat, miningFeeSat, serviceFeeSat, requestedSat, receivedSat]
+    note: 'msat appears inside channel objects (htlcMinimumMsat, feeBaseMsat) and in the CSV export (amount_msat, fee_credit_msat).'
+  events:
+    websocket: WS /websocket
+    webhooks: HTTP POST to configured endpoints, HMAC-SHA256 signed
+    ref: asyncapi/acinq-phoenixd-webhooks.yml
+- name: Eclair JSON API
+  base_url: http://{eclair_host}:8080
+  documented_default_port: 8080
+  enable_flags: [eclair.api.enabled=true, eclair.api.password, eclair.api.port]
+  authentication:
+    style: HTTP Basic, empty username, password from eclair.conf
+    ref: authentication/acinq-authentication.yml
+  request_format:
+    all: HTTP form data (curl -F / -d)
+    methods_used: [POST]
+    note: >-
+      ACINQ's reference states the API "uses HTTP form data and returns JSON-encoded
+      objects or simple strings if no objects are being returned". Every method is
+      addressed as POST /<methodname> — there is no REST resource hierarchy and no
+      path parameters.
+  response_format:
+    content: JSON objects, or a bare string where nothing structured is returned
+  idempotency: {supported: false, header: null}
+  pagination:
+    style: time-window
+    params: [from, to, count, skip]
+    note: >-
+      Audit and payment-history methods take time windows; there is no cursor and no
+      pagination envelope.
+  field_expansion: {supported: false}
+  request_tracing: {request_id_header: null}
+  versioning:
+    scheme: software-release
+    current: v0.14.1
+    note: No API version in the path; the contract is the installed eclair release.
+  error_envelope:
+    documented: true
+    shape: '{"error": "<human-readable message>"}'
+    status_codes: [400, 401, 404, 500]
+    note: 'ACINQ documents this as uniform across every method. Not RFC 9457 — no type/title/detail/instance.'
+    ref: errors/acinq-problem-types.yml
+  rate_limit_signaling:
+    headers: []
+    note: None documented. Self-hosted.
+  amounts:
+    unit: millisatoshi
+    note: >-
+      ACINQ's reference states "All monetary values are in millisatoshi unless stated
+      otherwise" — the OPPOSITE default from phoenixd, which is satoshi-denominated.
+      This is the single most likely integration error for a developer moving between
+      the two ACINQ APIs.
+  events:
+    websocket: 'GET ws://{eclair_host}:8080/ws'
+    webhooks: none
+cross_cutting_findings:
+- id: no-machine-readable-spec
+  finding: >-
+    Neither API publishes an OpenAPI, Swagger, GraphQL SDL, AsyncAPI or Postman
+    collection. Both references are hand-written documentation — eclair's is a Slate
+    build at acinq.github.io/eclair, phoenixd's is a markdown file served at
+    https://phoenix.acinq.co/content/server/api.md and rendered client-side.
+- id: markdown-twin-is-the-machine-readable-surface
+  finding: >-
+    The phoenix.acinq.co SPA fetches its documentation as raw markdown at
+    /content/server/api.md, /content/server/get-started.md, /content/server/liquidity.md,
+    /content/server/faq.md, /content/terms.md and /content/privacy.md — all returning
+    HTTP 200 with content-type text/markdown. These URLs are not linked from the site
+    and are not advertised in a sitemap or llms.txt, but they are the closest thing
+    ACINQ has to a machine-readable contract, and every page path itself answers 403 to
+    a non-browser client. Publishing an llms.txt that points at these files would cost
+    ACINQ nothing and immediately make the docs agent-readable.
+- id: unit-mismatch-between-siblings
+  finding: >-
+    phoenixd is satoshi-denominated and eclair is millisatoshi-denominated by default.
+    Two APIs from the same vendor, same domain, factor-of-1000 apart.
+- id: self-hosted-security-posture
+  finding: >-
+    Both references carry an explicit warning that the API must not be exposed to the
+    internet. There is no vendor-side gateway, no TLS termination, no allowlist and no
+    audit trail — the operator owns the entire attack surface.

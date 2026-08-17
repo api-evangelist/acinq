@@ -1,0 +1,106 @@
+generated: '2026-08-17'
+method: searched
+status: none
+source: https://github.com/ACINQ
+notes: >-
+  NO first-party ACINQ MCP server exists. Searched the ACINQ GitHub organization (all 30
+  repositories), the phoenixd and eclair documentation, npm (a registry search for
+  "acinq" returns only third-party packages), and the public MCP directories. Nothing
+  ACINQ publishes speaks MCP.
+
+  Because of that, NO `type: MCPServer` pointer is wired into apis.yml. The pointer
+  asserts that the provider ships an agent-callable server; wiring it for a candidate
+  nobody ships would credit ACINQ with an agent surface it does not have. `mcp/` is
+  recorded here as a measured absence plus the third-party landscape.
+
+  No `mcp/acinq-tool-crosswalk.yml` is emitted either: a crosswalk binds MCP tools to
+  OpenAPI operationIds, and ACINQ publishes neither an MCP server nor an OpenAPI.
+deployment:
+  mode: none
+  endpoint: null
+  install: null
+  package: null
+  auth: unknown
+  verified: searched
+first_party:
+  exists: false
+  searched:
+  - {surface: 'github.com/ACINQ (30 repos)', result: no MCP server, no mcp/ directory, no @modelcontextprotocol dependency}
+  - {surface: 'https://phoenix.acinq.co/server/api', result: no MCP mention}
+  - {surface: 'https://acinq.github.io/eclair/', result: no MCP mention}
+  - {surface: 'npm registry search "acinq"', result: 'no first-party package; phoenixd-mcp-server and phoenixd-client are third-party'}
+third_party:
+  note: >-
+    Recorded for accuracy and because it demonstrates real agent demand for this API —
+    but these are NOT ACINQ software, are not endorsed by ACINQ, and must never be
+    counted toward ACINQ's own agent readiness.
+  servers:
+  - name: phoenixd-mcp-server
+    author: Sharmaz (unaffiliated)
+    repo: https://github.com/Sharmaz/phoenixd-mcp-server
+    registry: npm
+    version: 1.2.0
+    published: '2026-03-22'
+    directory_listing: https://mcp.so/server/phoenixd-mcp-server
+    mode: local-stdio
+    wraps: phoenixd HTTP API
+    requires: 'a running phoenixd instance and its http-password'
+    official: false
+  - name: lightning-mcp-server
+    author: pblittle (unaffiliated)
+    repo: https://github.com/pblittle/lightning-mcp-server
+    scope: 'Lightning node data generally (LND-oriented), not ACINQ-specific'
+    official: false
+candidate_tools:
+  note: >-
+    A DESIGN SKETCH only, mapped from endpoints that genuinely exist in ACINQ's published
+    phoenixd reference. Not published, not hosted, not callable. `maps_to` is the real
+    documented route; there are no operationIds because there is no OpenAPI.
+  source: https://phoenix.acinq.co/server/api
+  read_only_safe:
+  - {name: get_node_info, maps_to: 'GET /getinfo', description: Node id and a compact list of channels.}
+  - {name: get_balance, maps_to: 'GET /getbalance', description: Lightning balance and fee credit.}
+  - {name: list_channels, maps_to: 'GET /listchannels', description: Full channel state.}
+  - {name: list_incoming_payments, maps_to: 'GET /payments/incoming', description: Paginated incoming payment history.}
+  - {name: get_incoming_payment, maps_to: 'GET /payments/incoming/{paymentHash}'}
+  - {name: list_outgoing_payments, maps_to: 'GET /payments/outgoing'}
+  - {name: get_outgoing_payment, maps_to: 'GET /payments/outgoing/{paymentId}'}
+  - {name: decode_invoice, maps_to: 'POST /decodeinvoice', description: Parse a BOLT11 invoice. Read-only despite the POST verb.}
+  - {name: decode_offer, maps_to: 'POST /decodeoffer', description: Parse a BOLT12 offer. Read-only despite the POST verb.}
+  - {name: estimate_liquidity_fees, maps_to: 'GET /estimateliquidityfees', description: Pre-commit cost quote for a liquidity purchase.}
+  - {name: get_lightning_address, maps_to: 'GET /getlnaddress'}
+  - {name: get_swap_in_address, maps_to: 'GET /getswapinaddress'}
+  receive_side:
+  - {name: create_invoice, maps_to: 'POST /createinvoice', description: Create a single-use BOLT11 invoice.}
+  - {name: create_offer, maps_to: 'POST /createoffer', description: Create a reusable BOLT12 offer.}
+  fund_moving:
+    warning: >-
+      These endpoints IRREVERSIBLY move bitcoin and are gated off phoenixd's
+      limited-access password for exactly that reason. Any MCP server exposing them needs
+      human-in-the-loop confirmation and a spend cap; there is no idempotency key to make
+      a retry safe.
+    tools:
+    - {name: pay_invoice, maps_to: 'POST /payinvoice', consequence: irreversible-payment}
+    - {name: pay_offer, maps_to: 'POST /payoffer', consequence: irreversible-payment}
+    - {name: pay_lightning_address, maps_to: 'POST /paylnaddress', consequence: irreversible-payment}
+    - {name: send_to_address, maps_to: 'POST /sendtoaddress', consequence: irreversible-onchain-spend}
+    - {name: bump_fee, maps_to: 'POST /bumpfee', consequence: increases-mining-fee-spend}
+    - {name: close_channel, maps_to: 'POST /closechannel', consequence: 'final and non-cancellable per ACINQ''s own warning'}
+    - {name: lnurl_pay, maps_to: 'POST /lnurlpay', consequence: irreversible-payment}
+    - {name: lnurl_withdraw, maps_to: 'POST /lnurlwithdraw'}
+    - {name: lnurl_auth, maps_to: 'POST /lnurlauth', consequence: 'signs an authentication challenge with a wallet-derived key'}
+    - {name: export_payments, maps_to: 'POST /export', consequence: writes-a-csv-to-the-host-filesystem}
+  candidate_tool_count: 27
+agent_readiness_notes:
+- >-
+  The limited-access password (http-password-limited-access) is an unusually good fit for
+  an agent credential: it permits reads and invoice creation while denying every
+  fund-moving route. Any MCP server built on phoenixd should default to it.
+- >-
+  GET /estimateliquidityfees gives an agent a real pre-commit cost quote, which most
+  payments APIs do not offer.
+- >-
+  The blockers for agent use are the absence of idempotency (a timed-out payinvoice retry
+  is unsafe), the absence of documented error semantics on phoenixd, and the fact that the
+  daemon binds to 127.0.0.1 and is explicitly documented as not for internet exposure — so
+  any remote agent access is architecture the integrator must design and secure.

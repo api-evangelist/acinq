@@ -1,0 +1,55 @@
+generated: '2026-08-17'
+method: searched
+source: https://phoenix.acinq.co/server/api
+docs:
+- https://phoenix.acinq.co/server/api
+- https://acinq.github.io/eclair/
+limit_count: 0
+rate_limits: []
+headers: []
+status_on_exhaustion: null
+notes: >-
+  NO rate limits are published for either API, and neither reference documents a
+  rate-limit response header (no X-RateLimit-*, no RateLimit-*, no Retry-After) or a 429
+  status. An honest zero.
+
+  The structural reason: both phoenixd and eclair are self-hosted daemons running as the
+  integrator's own process on the integrator's own host, bound to 127.0.0.1 by default.
+  There is no vendor gateway between the caller and the API, so there is no vendor quota
+  to publish. ACINQ's own reference frames the limit as a security concern rather than a
+  quota — it warns that the limited-access password still permits "resource exhaustion by
+  creating millions of invoices", i.e. the operator is expected to rate-limit their own
+  daemon.
+
+  What DOES constrain volume is economic, not a request quota, and it is documented:
+  inbound-liquidity purchases (1% + mining fees), the fee-credit buffer, and the
+  --max-fee-credit ceiling above which incoming payments are REJECTED. Those are
+  captured in plans/acinq-plans-pricing.yml.
+economic_limits:
+- id: max-fee-credit
+  api: phoenixd HTTP API
+  flag: --max-fee-credit
+  effect: 'When the fee credit ceiling is reached, incoming payments are rejected.'
+  note: >-
+    This is the closest thing to an exhaustion condition in the ACINQ surface, and it
+    fails on the RECEIVE path rather than returning a throttling status to the caller.
+  source: https://github.com/ACINQ/phoenixd/blob/master/src/commonMain/kotlin/fr/acinq/phoenixd/Phoenixd.kt
+- id: max-mining-fee
+  api: phoenixd HTTP API
+  flag: --max-mining-fee
+  effect: Caps the mining fee phoenixd will pay for an on-chain operation.
+  source: https://github.com/ACINQ/phoenixd/blob/master/src/commonMain/kotlin/fr/acinq/phoenixd/Phoenixd.kt
+- id: channel-htlc-limits
+  api: both
+  effect: >-
+    Per-channel protocol limits bound in-flight payments — maxAcceptedHtlcs,
+    maxHtlcValueInFlightMsat, htlcMinimum — and are visible in the channel objects
+    returned by GET /listchannels (phoenixd) and channels (eclair). These are BOLT
+    protocol constraints, not API rate limits, but they are the real concurrency ceiling
+    for a high-volume merchant.
+  source: https://phoenix.acinq.co/server/api
+gaps:
+- No 429 semantics documented on either API.
+- No Retry-After, RateLimit-Limit/Remaining/Reset or X-RateLimit-* headers documented.
+- No guidance on safe request concurrency for the payments endpoints.
+- 'Compounding risk: no rate-limit signal AND no idempotency (see conventions/acinq-conventions.yml) means a client that retries a fund-moving call on timeout has no protection at either layer.'

@@ -1,0 +1,109 @@
+generated: '2026-08-17'
+method: searched
+source: https://phoenix.acinq.co/server/api
+spec_type: null
+notes: >-
+  ACINQ publishes NO AsyncAPI document. Searched the ACINQ GitHub organization (30
+  repositories), both web hosts and both API references; /asyncapi.yaml and
+  /asyncapi.json are not served on acinq.co or phoenix.acinq.co. So this artifact
+  captures the real, documented event surface as a WEBHOOK + WEBSOCKET catalog and wires
+  `type: Webhooks` only — `type: AsyncAPI` is deliberately NOT emitted.
+
+  The event surface itself is genuine and better specified than most: phoenixd ships
+  both a streaming websocket and configurable outbound webhooks, the webhook calls are
+  HMAC-SHA256 signed with a documented signature construction and a worked example, and
+  a per-invoice webhook override is available. eclair ships a payment-notification
+  websocket only.
+event_surfaces:
+- id: phoenixd-websocket
+  api: phoenixd HTTP API
+  kind: websocket
+  endpoint: 'WS /websocket'
+  full_form: 'ws://{phoenixd_host}:9740/websocket'
+  description: Streams JSON for received payments.
+  authentication:
+    schemes: [http-basic, Sec-WebSocket-Protocol header]
+    ref: authentication/acinq-authentication.yml
+  messages:
+  - type: payment_received
+    fields: [type, amountSat, paymentHash, payerNote, payerKey, externalId]
+    note: >-
+      `externalId` is present when it was supplied at invoice creation;
+      `payerKey`/`payerNote` are present for Bolt12 offer payments.
+    example: '{ "type": "payment_received", "amountSat": 15, "payerNote": "hello", "payerKey": "02ad95…", "paymentHash": "5ad2185b…" }'
+  documented_types: 1
+  note: 'ACINQ states the payload carries a `type` field "for now, only payment_received".'
+  source: https://phoenix.acinq.co/server/api
+- id: phoenixd-webhooks
+  api: phoenixd HTTP API
+  kind: webhook
+  direction: outbound
+  transport: HTTP POST with a JSON body
+  configuration:
+    file: ~/.phoenix/phoenix.conf
+    key: webhook
+    flag: --webhook
+    multiple: true
+    note: Multiple webhook endpoints may be configured; all are notified.
+    per_request_override:
+      param: webhookUrl
+      on: POST /createinvoice
+      note: >-
+        A per-invoice webhook URL, notified IN ADDITION to the globally configured
+        webhooks, and authenticated the same way.
+  tls: recommended but not enforced by phoenixd
+  authentication:
+    header: X-Phoenix-Signature
+    algorithm: HMAC-SHA256
+    signed_payload: the full HTTP POST body, UTF-8 encoded
+    secret:
+      config_key: webhook-secret
+      flag: --webhook-secret
+    construction: 'X-Phoenix-Signature = hmacSha256(msg = <full http post body as utf8>, secret = <webhook-secret>)'
+    verification_note: >-
+      ACINQ publishes a worked example with a body, a secret and the resulting
+      signature so an integrator can validate their implementation.
+  headers_sent: [accept, accept-charset, content-type, host, X-Phoenix-Signature]
+  events:
+  - type: payment_received
+    fields: [type, timestamp, amountSat, paymentHash, externalId, payerNote, payerKey]
+    example: '{"type": "payment_received", "timestamp": 1748269006918, "amountSat": 1, "paymentHash": "7db610f2…", "externalId": null, "payerNote": null, "payerKey": null}'
+  event_count: 1
+  note: 'The webhook payload is documented as "similar to the websocket events".'
+  source: https://phoenix.acinq.co/server/api
+- id: eclair-websocket
+  api: Eclair JSON API
+  kind: websocket
+  endpoint: 'GET /ws'
+  full_form: 'ws://{eclair_host}:8080/ws'
+  description: >-
+    Emits a message containing the payment hash of a payment when the node receives a
+    payment.
+  authentication:
+    schemes: [http-basic]
+  messages:
+  - type: payment-received
+    fields: [paymentHash]
+    note: >-
+      The eclair reference documents the websocket under a "WebSocket / WS" section; the
+      repository docs/API.md describes it as emitting the payment hash on receipt.
+  documented_types: 1
+  source: https://acinq.github.io/eclair/#websocket
+delivery_semantics:
+  retries: not documented
+  ordering: not documented
+  at_least_once: not documented
+  replay: >-
+    No event replay endpoint. Missed events must be reconciled from
+    GET /payments/incoming (phoenixd) or listreceivedpayments / getreceivedinfo (eclair).
+  note: >-
+    Recorded as an absence. ACINQ documents the payload and the signature but not the
+    delivery contract, which is the gap an integrator building a merchant checkout will
+    hit first.
+summary:
+  asyncapi_published: false
+  webhook_surface: true
+  websocket_surface: true
+  signed_webhooks: true
+  documented_event_types: 1
+  pointer_emitted: Webhooks

@@ -1,0 +1,92 @@
+generated: '2026-08-17'
+method: searched
+source: https://phoenix.acinq.co/server/auto-liquidity
+docs:
+- https://phoenix.acinq.co/server/auto-liquidity
+- https://phoenix.acinq.co/faq
+- https://phoenix.acinq.co/server/api
+plan_count: 0
+pricing_model: transaction-fee
+notes: >-
+  ACINQ publishes NO subscription plans, tiers, seats or quotas — there is nothing to
+  buy and nothing to sign up for. Both APIs are free, open-source, self-hosted software
+  (phoenixd is Apache 2.0, eclair is Apache 2.0). What ACINQ charges for is its role as
+  the Lightning service provider behind Phoenix and phoenixd: per-transaction fees and
+  inbound-liquidity purchases. Those published rates are recorded below as `fees[]`
+  rather than as plans, because they are usage-priced and there is no plan to select.
+
+  plan_count is therefore an honest 0, not a gap. Every rate below is quoted verbatim
+  from ACINQ's own published fee table and auto-liquidity page.
+signup_required: false
+sales_gate: false
+free_tier: 'n/a — the software is free; the LSP fees below apply per transaction'
+fees:
+- operation: Sending via Lightning
+  rate: 0.4% + 4 sat
+  currency: BTC
+  unit: satoshi
+  source: https://phoenix.acinq.co/faq
+  note: 'The phoenixd API reference repeats "A 0.4% fee applies" on /payinvoice, /payoffer and /paylnaddress.'
+- operation: Sending on-chain
+  rate: mining fees only (user-chosen feerate)
+  param: feerateSatByte
+  source: https://phoenix.acinq.co/faq
+- operation: Receiving via Lightning (sufficient inbound liquidity)
+  rate: 0 (no fees)
+  source: https://phoenix.acinq.co/faq
+- operation: Receiving via Lightning (insufficient inbound liquidity)
+  rate: 1% + mining fees
+  source: https://phoenix.acinq.co/faq
+- operation: Requesting inbound liquidity
+  rate: 1% + mining fees
+  source: https://phoenix.acinq.co/server/auto-liquidity
+- operation: Receiving on-chain
+  rate: mining fees
+  source: https://phoenix.acinq.co/faq
+- operation: Channel creation
+  rate: 1000 sat
+  source: https://phoenix.acinq.co/faq
+liquidity:
+  mechanism: auto-liquidity
+  default_request_amount_sat: 2000000
+  configurable_with: --auto-liquidity
+  service_fee: 1% of the purchased liquidity, plus mining fees, paid upfront
+  fee_credit:
+    description: >-
+      Small incoming payments too small to fund a channel by themselves are paid to the
+      LSP and set aside as credit against future fees, instead of being rejected.
+    refundable: false
+    note: >-
+      ACINQ documents the fee credit as explicitly NON-REFUNDABLE and not part of the
+      user's balance — it can only pay mining/service fees. Recorded because it is a
+      real commercial term a buyer must read before integrating.
+    cap_flag: --max-fee-credit
+  effective_receive_feerate:
+    note: >-
+      ACINQ publishes an effective-feerate matrix by mining feerate and liquidity chunk
+      size (worst case, receive-only). Quoted verbatim.
+    unit: percent of received volume
+    table:
+    - {mining_feerate_sat_per_byte: 1, at_2m_sat: '1.01%', at_5m_sat: '1.01%', at_10m_sat: '1.00%'}
+    - {mining_feerate_sat_per_byte: 10, at_2m_sat: '1.14%', at_5m_sat: '1.05%', at_10m_sat: '1.03%'}
+    - {mining_feerate_sat_per_byte: 20, at_2m_sat: '1.27%', at_5m_sat: '1.11%', at_10m_sat: '1.05%'}
+    - {mining_feerate_sat_per_byte: 30, at_2m_sat: '1.41%', at_5m_sat: '1.16%', at_10m_sat: '1.08%'}
+    - {mining_feerate_sat_per_byte: 50, at_2m_sat: '1.68%', at_5m_sat: '1.27%', at_10m_sat: '1.14%'}
+    - {mining_feerate_sat_per_byte: 70, at_2m_sat: '1.95%', at_5m_sat: '1.38%', at_10m_sat: '1.19%'}
+  cost_controls:
+    flags: [--auto-liquidity, --max-mining-fee, --max-fee-credit]
+    api: 'GET /estimateliquidityfees?amountSat= returns {miningFeeSat, serviceFeeSat} before committing'
+    note: >-
+      A programmable pre-commit cost quote is unusual and worth crediting: an agent can
+      price a liquidity operation before triggering it.
+plans: []
+licensing:
+- product: phoenixd
+  license: Apache-2.0
+  source: https://github.com/ACINQ/phoenixd
+- product: eclair
+  license: Apache-2.0
+  source: https://github.com/ACINQ/eclair
+- product: lightning-kmp / bitcoin-kmp / secp256k1-kmp
+  license: Apache-2.0
+  source: https://github.com/ACINQ

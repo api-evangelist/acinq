@@ -1,0 +1,119 @@
+generated: '2026-08-17'
+method: searched
+source: https://phoenix.acinq.co/server/get-started
+docs:
+- https://phoenix.acinq.co/server/get-started
+- https://github.com/ACINQ/eclair/blob/master/docs/Usage.md
+- https://github.com/ACINQ/phoenixd
+notes: >-
+  ACINQ ships first-party CLIs for both API-bearing products, and in both cases the CLI
+  is a thin client over the same HTTP API documented for programmatic use — so the CLI
+  command surface IS the API surface. phoenix-cli is bundled in the phoenixd release
+  archive; eclair-cli is a bash script bundled with eclair. A separate Kotlin
+  ACINQ/eclair-cli exists but has had no commits since 2023-09-08.
+clis:
+- name: phoenix-cli
+  api: phoenixd HTTP API
+  official: true
+  distribution: bundled in the phoenixd release archive (no language registry)
+  install_methods:
+  - method: github-release
+    example: |
+      wget https://github.com/ACINQ/phoenixd/releases/download/v0.9.0/phoenixd-0.9.0-linux-x64.zip
+      unzip -j phoenixd-0.9.0-linux-x64.zip
+    source: https://phoenix.acinq.co/server/get-started
+  - method: build-from-source
+    targets: [linuxX64DistZip, linuxArm64DistZip, macosX64DistZip, macosArm64DistZip, jvmDistZip]
+    requires: OpenJDK 21
+    source: https://github.com/ACINQ/phoenixd
+  platforms: [linux-x64, linux-arm64, macos-x64, macos-arm64, windows-wsl, jvm]
+  transport: 'calls the local phoenixd HTTP API (default 127.0.0.1:9740)'
+  commands:
+    note: >-
+      The CLI mirrors the HTTP endpoints one-for-one; flags are the endpoint parameters.
+      Examples below are quoted from ACINQ's get-started page.
+    groups:
+    - group: node
+      commands: [getinfo, getbalance, listchannels, closechannel, estimateliquidityfees]
+    - group: receive
+      commands: [createinvoice, createoffer, getlnaddress, getswapinaddress]
+    - group: send
+      commands: [payinvoice, payoffer, paylnaddress, sendtoaddress, bumpfee]
+    - group: history
+      commands: [payments/incoming, payments/outgoing, export]
+    - group: decode
+      commands: [decodeinvoice, decodeoffer]
+    - group: lnurl
+      commands: [lnurlpay, lnurlwithdraw, lnurlauth]
+  examples:
+  - 'phoenix-cli getinfo'
+  - 'phoenix-cli createinvoice --description "my first invoice" --amountSat 12345'
+  - 'phoenix-cli sendtoaddress --address <bitcoin_address> --amountSat 100000 --feerateSatByte 12'
+- name: phoenixd
+  api: phoenixd HTTP API
+  official: true
+  kind: daemon
+  note: 'The server itself. Listed because its flags are the configuration surface an integrator must set before the API exists.'
+  key_flags:
+  - {flag: --chain, values: [mainnet, testnet], default: mainnet}
+  - {flag: --http-bind-ip, default: 127.0.0.1}
+  - {flag: --http-bind-port, default: 9740}
+  - {flag: --http-password, note: full-access API password}
+  - {flag: --http-password-limited-access, note: read + invoice-creation password}
+  - {flag: --webhook, note: 'repeatable; webhook endpoint for push notifications'}
+  - {flag: --webhook-secret, note: 'HMAC-SHA256 secret for X-Phoenix-Signature'}
+  - {flag: --auto-liquidity, note: 'amount requested when inbound liquidity is needed (default 2m sat)'}
+  - {flag: --max-mining-fee}
+  - {flag: --max-fee-credit, note: 'payments are rejected once reached'}
+  - {flag: --electrum-server, note: 'custom electrum server host:port (SSL)'}
+  - {flag: --mempool-space-url, note: custom mempool.space instance}
+  - {flag: --seed, envvar: PHOENIX_SEED}
+  - {flag: --seed-path}
+  - {flag: --agree-to-terms-of-service}
+  - {flag: --log-rotate-size}
+  - {flag: --log-rotate-max-files}
+  - {flag: --silent}
+  - {flag: --verbose}
+  - {flag: --version, alias: -v}
+  source: https://github.com/ACINQ/phoenixd/blob/master/src/commonMain/kotlin/fr/acinq/phoenixd/Phoenixd.kt
+- name: eclair-cli
+  api: Eclair JSON API
+  official: true
+  kind: bash script
+  distribution: bundled with the eclair distribution
+  transport: 'calls the local eclair JSON API (default port 8080)'
+  docs: https://github.com/ACINQ/eclair/blob/master/docs/Usage.md
+  commands:
+    note: >-
+      eclair-cli exposes the same 56 methods as the HTTP API. Grouping below follows
+      ACINQ's own API reference sections.
+    groups:
+    - group: node
+      commands: [getinfo]
+    - group: connections
+      commands: [connect, disconnect, peers]
+    - group: channels
+      commands: [open, rbfopen, cpfpbumpfees, splicein, spliceout, rbfsplice, close, forceclose, bumpforceclose, updaterelayfee, channels, channel, closedchannels]
+    - group: network
+      commands: [nodes, node, allchannels, allupdates]
+    - group: payments
+      commands: [createinvoice, deleteinvoice, parseinvoice, payinvoice, createoffer, listoffers, disableoffer, parseoffer, payoffer, sendtonode, sendtoroute, getsentinfo, getreceivedinfo, listreceivedpayments, getinvoice, listinvoices, listpendinginvoices]
+    - group: route
+      commands: [findroute, findroutetonode, findroutebetweennodes]
+    - group: on-chain
+      commands: [getnewaddress, sendonchain, onchainbalance, onchaintransactions]
+    - group: messages
+      commands: [sendonionmessage, signmessage, verifymessage]
+    - group: misc
+      commands: [audit, relaystats, usablebalances, channelbalances, globalbalance, getmasterxpub, getdescriptors]
+  source: https://acinq.github.io/eclair/
+- name: eclair-cli (Kotlin)
+  api: Eclair JSON API
+  official: true
+  status: stale
+  repo: https://github.com/ACINQ/eclair-cli
+  last_commit: '2023-09-08'
+  note: >-
+    A standalone Kotlin command-line tool to manage an eclair node. No commits in
+    ~3 years and 4 GitHub stars; recorded for completeness, not recommended. The bash
+    eclair-cli shipped with eclair is the maintained path.

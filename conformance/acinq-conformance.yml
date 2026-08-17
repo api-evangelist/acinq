@@ -1,0 +1,174 @@
+generated: '2026-08-17'
+method: searched
+source: https://github.com/ACINQ/eclair
+docs:
+- https://github.com/ACINQ/eclair
+- https://phoenix.acinq.co/server/api
+- https://github.com/lightning/bolts
+notes: >-
+  ACINQ's conformance story is almost entirely in the PROTOCOL layer, not the web-API
+  layer. eclair is one of the reference implementations of the BOLT Lightning
+  specifications and ACINQ co-authored them; ACINQ's own 2017 news announcements record
+  the interoperability milestones ("Convergence on a standard for the Lightning Network",
+  "Lightning Protocol 1.0: Compatibility Achieved"). Against web/API standards the
+  posture is thin: no OpenAPI, no OAuth/OIDC, no RFC 9457, no JSON:API.
+
+  NO `type: Compliance` pointer is emitted. ACINQ publishes no certifications (no SOC 2,
+  ISO 27001, PCI DSS, HIPAA, FedRAMP), no trust centre and no compliance programme page —
+  which is consistent with shipping self-hosted open-source software rather than a
+  regulated hosted service. Asserting Compliance here would credit a programme that does
+  not exist.
+standards:
+- id: bolt-lightning-specifications
+  name: BOLT (Basis of Lightning Technology) specifications
+  conforms: true
+  role: reference implementation and co-author
+  evidence: >-
+    'Eclair (French for Lightning) is a Scala implementation of the Lightning Network. It
+    follows the Lightning Network Specifications (BOLTs).' ACINQ engineers are listed
+    contributors to lightning/bolts, and eclair is one of the implementations used in the
+    cross-implementation interoperability test suite.
+  source: https://github.com/ACINQ/eclair
+- id: bolt11-invoices
+  name: BOLT 11 — Invoice Protocol for Lightning Payments
+  conforms: true
+  evidence: 'phoenixd POST /createinvoice, /payinvoice, /decodeinvoice; eclair createinvoice, parseinvoice, payinvoice. Published examples are valid lntb… BOLT11 strings.'
+  source: https://phoenix.acinq.co/server/api
+- id: bolt12-offers
+  name: BOLT 12 — Offers
+  conforms: true
+  evidence: 'phoenixd POST /createoffer, /payoffer, /decodeoffer with blinded-path and payerKey/payerNote support; eclair createoffer, listoffers, disableoffer, parseoffer, payoffer.'
+  source: https://phoenix.acinq.co/server/api
+- id: bolt12-onion-messages
+  name: Onion messages (BOLT 4 / BOLT 12 blinded paths)
+  conforms: true
+  evidence: 'eclair exposes sendonionmessage; decodeoffer responses carry blinded-path structures (introductionNodeId, blindingKey, blindedNodes).'
+  source: https://acinq.github.io/eclair/
+- id: bolt2-splicing
+  name: Channel splicing
+  conforms: true
+  evidence: 'eclair exposes splicein, spliceout, rbfsplice, cpfpbumpfees; phoenixd /sendtoaddress is documented as performing a splice without closing the channel.'
+  source: https://acinq.github.io/eclair/
+- id: bip-353
+  name: BIP 353 — DNS Payment Instructions (Lightning addresses)
+  conforms: true
+  evidence: 'phoenixd GET /getlnaddress is documented as returning "a BIP-353 Lightning address from the LSP"; POST /paylnaddress pays "either based on BIP-353 or LNURL".'
+  source: https://phoenix.acinq.co/server/api
+- id: lnurl
+  name: LNURL (LUD specifications)
+  conforms: true
+  supported_luds: [lnurl-pay, lnurl-withdraw, lnurl-auth]
+  evidence: 'phoenixd POST /lnurlpay, /lnurlwithdraw, /lnurlauth. The reference cites LUD-04 explicitly for lnurl-auth.'
+  source: https://phoenix.acinq.co/server/api
+- id: bip-39-seed
+  name: BIP 39 — mnemonic recovery phrase
+  conforms: true
+  evidence: 'phoenixd generates a 12-word recovery phrase on first start, stored at ~/.phoenix/seed.dat.'
+  source: https://phoenix.acinq.co/server/faq
+- id: bech32-bech32m
+  name: BIP 173 / BIP 350 — bech32 and bech32m addresses
+  conforms: true
+  evidence: 'Published examples use tb1q… (bech32) and tb1p… (bech32m/taproot) addresses.'
+  source: https://phoenix.acinq.co/server/api
+- id: bip-32-descriptors
+  name: BIP 32 extended keys and output descriptors
+  conforms: true
+  evidence: 'eclair exposes getmasterxpub and getdescriptors; channel objects carry BIP-32 fundingKeyPath derivation paths.'
+  source: https://acinq.github.io/eclair/
+- id: http-basic-auth
+  name: RFC 7617 — HTTP Basic authentication
+  conforms: true
+  evidence: 'Both APIs authenticate with HTTP Basic and an empty username; eclair documents the header construction verbatim.'
+  ref: authentication/acinq-authentication.yml
+- id: hmac-sha256-webhook-signing
+  name: HMAC-SHA256 request signing (RFC 2104 construction)
+  conforms: true
+  evidence: 'phoenixd signs webhook bodies into X-Phoenix-Signature with HMAC-SHA256 over the UTF-8 body, with a published worked example.'
+  ref: asyncapi/acinq-phoenixd-webhooks.yml
+- id: rfc6455-websockets
+  name: RFC 6455 — WebSocket
+  conforms: true
+  evidence: 'phoenixd WS /websocket (also accepting credentials via Sec-WebSocket-Protocol); eclair ws://…/ws.'
+  ref: asyncapi/acinq-phoenixd-webhooks.yml
+- id: openapi
+  name: OpenAPI Specification
+  conforms: false
+  evidence: >-
+    No OpenAPI or Swagger document is published for either API. Probed acinq.co,
+    phoenix.acinq.co and acinq.github.io for /openapi.json, /openapi.yaml, /swagger.json
+    (all miss), and searched the 30-repository ACINQ GitHub organization, the eclair
+    docs/ directory and the eclair gh-pages branch (a static Slate build, index.html
+    only). See x-coverage in apis.yml.
+- id: asyncapi
+  name: AsyncAPI Specification
+  conforms: false
+  evidence: 'No AsyncAPI document published, despite a real websocket + signed-webhook event surface. See asyncapi/acinq-phoenixd-webhooks.yml.'
+- id: rfc9457-problem-details
+  name: RFC 9457 — Problem Details for HTTP APIs
+  conforms: false
+  evidence: 'eclair uses a bare {"error": "<message>"} envelope with no type/title/detail/instance and no application/problem+json. phoenixd documents no error shape at all.'
+  ref: errors/acinq-problem-types.yml
+- id: oauth2
+  name: OAuth 2.0
+  conforms: false
+  evidence: 'No oauth2 flows, no token endpoint, no scopes. Password-based HTTP Basic only, so scopes/ is intentionally absent.'
+- id: oidc
+  name: OpenID Connect
+  conforms: false
+  evidence: '/.well-known/openid-configuration returns no document on any ACINQ host.'
+  ref: well-known/acinq-well-known.yml
+- id: rfc9116-security-txt
+  name: RFC 9116 — security.txt
+  conforms: false
+  evidence: '/.well-known/security.txt is not served on acinq.co (404) or phoenix.acinq.co (403 SPA shell). ACINQ does publish a disclosure contact, but only in repository SECURITY.md files.'
+  ref: security/acinq-vulnerability-disclosure.yml
+- id: rfc8594-sunset-header
+  name: RFC 8594 — Sunset HTTP header
+  conforms: false
+  evidence: 'No Sunset or Deprecation headers, and no deprecation policy.'
+  ref: lifecycle/acinq-lifecycle.yml
+- id: rfc8615-well-known
+  name: RFC 8615 — well-known URIs
+  conforms: false
+  evidence: 'No /.well-known/ document of any kind on any host.'
+  ref: well-known/acinq-well-known.yml
+- id: llms-txt
+  name: llms.txt
+  conforms: false
+  evidence: '/llms.txt returns 404 on acinq.co and 403 on phoenix.acinq.co. A generated one is provided at llms/acinq-llms.txt.'
+- id: mcp
+  name: Model Context Protocol
+  conforms: false
+  evidence: 'No first-party MCP server. A third-party wrapper exists (Sharmaz/phoenixd-mcp-server). See mcp/acinq-mcp.yml.'
+- id: a2a
+  name: A2A Agent Card
+  conforms: false
+  evidence: '/.well-known/agent-card.json and /.well-known/agent.json miss on every ACINQ host.'
+  ref: well-known/acinq-well-known.yml
+- id: pci-dss
+  name: PCI DSS
+  conforms: false
+  applicable: false
+  evidence: 'No card data is handled — ACINQ moves bitcoin over Lightning. Recorded as not applicable rather than failed.'
+- id: psd2
+  name: PSD2 / Open Banking
+  conforms: false
+  applicable: false
+  evidence: 'Not a payment service provider in the PSD2 sense; self-custodial bitcoin software.'
+certifications: []
+compliance_program:
+  published: false
+  trust_center: false
+  soc2: false
+  iso27001: false
+  note: >-
+    None published. Searched acinq.co, phoenix.acinq.co, trust.acinq.co and
+    security.acinq.co. Pointer `type: Compliance` deliberately NOT emitted.
+summary:
+  protocol_standards_conformant: 11
+  web_api_standards_conformant: 3
+  web_api_standards_missed: 9
+  headline: >-
+    Deep, credible conformance to the Lightning/Bitcoin protocol standards ACINQ helped
+    write; near-zero conformance to the HTTP/API standards that make an API discoverable
+    and machine-consumable.

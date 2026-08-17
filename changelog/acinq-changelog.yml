@@ -1,0 +1,72 @@
+generated: '2026-08-17'
+method: searched
+source: https://github.com/ACINQ/eclair/releases
+docs:
+- https://github.com/ACINQ/eclair/releases
+- https://github.com/ACINQ/phoenixd/releases
+- https://github.com/ACINQ/eclair/tree/master/docs/release-notes
+notes: >-
+  ACINQ publishes dated, per-release change notes on GitHub for both API-bearing
+  products. eclair additionally keeps long-form release notes in-repo at
+  docs/release-notes/eclair-v*.md (13 files, including eclair-vnext.md, the running notes
+  for the unreleased version — an unusually good practice worth crediting: the next
+  release's breaking changes are readable BEFORE it ships).
+
+  There is no consolidated, API-scoped changelog: an integrator has to read the software
+  release notes and infer which changes touched the HTTP API. Recent window captured
+  below; the GitHub releases pages remain the source of truth.
+scheme: semver
+release_channel: github-releases
+components:
+- name: eclair
+  api: Eclair JSON API
+  current_version: v0.14.1
+  current_date: '2026-07-29'
+  releases_url: https://github.com/ACINQ/eclair/releases
+  release_notes_dir: https://github.com/ACINQ/eclair/tree/master/docs/release-notes
+  vnext_notes: https://github.com/ACINQ/eclair/blob/master/docs/release-notes/eclair-vnext.md
+  entries:
+  - {version: v0.14.1, date: '2026-07-29', notes: https://github.com/ACINQ/eclair/blob/master/docs/release-notes/eclair-v0.14.1.md}
+  - {version: v0.14.0, date: '2026-05-21', notes: https://github.com/ACINQ/eclair/blob/master/docs/release-notes/eclair-v0.14.0.md}
+  - {version: v0.13.1, date: '2025-10-27', notes: https://github.com/ACINQ/eclair/blob/master/docs/release-notes/eclair-v0.13.1.md}
+  - {version: v0.13.0, date: '2025-09-10', notes: https://github.com/ACINQ/eclair/blob/master/docs/release-notes/eclair-v0.13.0.md}
+  - {version: v0.12.0, date: '2025-03-11', notes: https://github.com/ACINQ/eclair/blob/master/docs/release-notes/eclair-v0.12.0.md}
+  - {version: v0.11.0, date: '2024-12-04', notes: https://github.com/ACINQ/eclair/blob/master/docs/release-notes/eclair-v0.11.0.md}
+  - {version: v0.10.0, date: '2024-02-29'}
+  - {version: v0.9.0, date: '2023-06-19', notes: https://github.com/ACINQ/eclair/blob/master/docs/release-notes/eclair-v0.9.0.md}
+- name: phoenixd
+  api: phoenixd HTTP API
+  current_version: v0.9.0
+  current_date: '2026-07-13'
+  releases_url: https://github.com/ACINQ/phoenixd/releases
+  api_reference_version_note: 'https://phoenix.acinq.co/server/api states it is "up-to-date for version 0.9.0"'
+  entries:
+  - {version: v0.9.0, date: '2026-07-13'}
+  - {version: v0.8.0, date: '2026-05-20'}
+  - {version: v0.7.3, date: '2026-03-19'}
+  - {version: v0.7.2, date: '2026-01-20'}
+  - {version: v0.7.1, date: '2025-11-10'}
+  - {version: v0.7.0, date: '2025-10-28'}
+  - {version: v0.6.3, date: '2025-10-02'}
+  - {version: v0.6.2, date: '2025-07-31'}
+company_news:
+  url: https://acinq.co/blog
+  machine_readable_index: https://acinq.co/news/news.json
+  note: >-
+    acinq.co serves a machine-readable news index at /news/news.json (HTTP 200,
+    7 entries) which is not linked or advertised anywhere. Its newest entry is dated
+    October 9th, 2019 — the corporate news channel is effectively dormant, while the
+    engineering release channel on GitHub is very active. The /blog route exists in the
+    site's client-side router but returns 404 to a non-browser client.
+  entries:
+  - {title: 'ACINQ, one of the main developers of the Bitcoin Lightning Network, raises $8M', date: 'October 9th, 2019'}
+  - {title: 'ACINQ raises $1.7M to accelerate worldwide adoption of the Bitcoin Lightning Network', date: 'October 4th, 2018'}
+  - {title: 'Lightning Protocol 1.0: Compatibility Achieved', date: 'December 6th, 2017'}
+  - {title: 'Towards a Unified Lightning Network', date: 'August 24th, 2017'}
+  - {title: 'Early release of Eclair', date: 'March 21st, 2017'}
+  - {title: 'Convergence on a standard for the Lightning Network', date: 'October 17th, 2016'}
+  - {title: "Successful implementation of Bitfury's Flare routing algorithm", date: 'September 27th, 2016'}
+gaps:
+- No API-scoped changelog — HTTP API changes are mixed into software release notes.
+- No RSS/Atom feed for releases or for the corporate blog (acinq.co/rss.xml and /feed.xml both 404).
+- No email or webhook notification channel for breaking API changes.

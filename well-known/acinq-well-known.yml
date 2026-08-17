@@ -1,0 +1,51 @@
+generated: '2026-08-17'
+method: probed
+source: direct HTTP probe of every ACINQ web host, 2026-08-17
+notes: >-
+  NO /.well-known/ document is served on any ACINQ host. Recorded as an absence, and
+  deliberately NOT wired as a `type: WellKnown` or `type: SecurityTxt` pointer in
+  apis.yml — the pointer would assert a surface the provider does not serve.
+
+  Both acinq.co and phoenix.acinq.co are client-rendered Vue single-page applications
+  behind Cloudflare. acinq.co answers every unknown path with HTTP 404 and a 2,062-byte
+  HTML shell; phoenix.acinq.co answers every unknown path with HTTP 403 and a 1,770-byte
+  HTML shell. Neither status carries a document, and the HTML body is the SPA shell, not
+  content — so every row below is a miss even where the status is not 404.
+
+  ACINQ does publish a real vulnerability-disclosure contact, but it lives in the
+  SECURITY.md of its GitHub repositories rather than in a security.txt — see
+  security/acinq-vulnerability-disclosure.yml.
+
+  The phoenixd and eclair APIs themselves are self-hosted daemons bound to the
+  integrator's own host (127.0.0.1:9740 and :8080 by default), so there is no
+  vendor-controlled API host on which a /.well-known/ surface could be probed.
+hosts:
+- host: https://acinq.co
+  documents:
+  - {path: /.well-known/security.txt, status: 404, file: null}
+  - {path: /.well-known/openid-configuration, status: 404, file: null}
+  - {path: /.well-known/oauth-authorization-server, status: 404, file: null}
+  - {path: /.well-known/oauth-protected-resource, status: 404, file: null}
+  - {path: /.well-known/api-catalog, status: 404, file: null}
+  - {path: /.well-known/ai-plugin.json, status: 404, file: null}
+  - {path: /.well-known/agent-card.json, status: 404, file: null}
+  - {path: /.well-known/agent.json, status: 404, file: null}
+- host: https://phoenix.acinq.co
+  documents:
+  - {path: /.well-known/security.txt, status: 403, file: null, note: SPA shell, not a document}
+  - {path: /.well-known/openid-configuration, status: 403, file: null, note: SPA shell, not a document}
+  - {path: /.well-known/oauth-authorization-server, status: 403, file: null, note: SPA shell, not a document}
+  - {path: /.well-known/oauth-protected-resource, status: 403, file: null, note: SPA shell, not a document}
+  - {path: /.well-known/api-catalog, status: 403, file: null, note: SPA shell, not a document}
+  - {path: /.well-known/ai-plugin.json, status: 403, file: null, note: SPA shell, not a document}
+  - {path: /.well-known/agent-card.json, status: 403, file: null, note: SPA shell, not a document}
+  - {path: /.well-known/agent.json, status: 403, file: null, note: SPA shell, not a document}
+- host: https://acinq.github.io
+  documents:
+  - {path: /.well-known/agent-card.json, status: 404, file: null}
+  - {path: /eclair/.well-known/agent-card.json, status: 404, file: null}
+summary:
+  documents_found: 0
+  security_txt: false
+  agent_card: false
+  pointer_emitted: false

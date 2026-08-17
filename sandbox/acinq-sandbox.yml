@@ -1,0 +1,90 @@
+generated: '2026-08-17'
+method: searched
+source: https://phoenix.acinq.co/server/api
+docs:
+- https://phoenix.acinq.co/server/api
+- https://github.com/ACINQ/phoenixd
+- https://github.com/ACINQ/eclair/blob/master/docs/Configure.md
+notes: >-
+  ACINQ has no hosted sandbox, no test-mode API keys and no test-vs-live key prefixes,
+  because there is no vendor-hosted API to sandbox. What it has instead — and what maps
+  onto the same artifact — is BITCOIN TESTNET: both daemons take a chain flag, and
+  running against testnet gives a full, free, non-destructive environment with real
+  protocol behaviour and worthless coins.
+
+  This is a genuinely strong test story for a payments API and it is not credited
+  anywhere in the docs as such: the "sandbox" is the same binary against a different
+  chain, so there is zero test/live code divergence, unlike a mocked test mode.
+
+  NO test values are invented below. The bech32 strings quoted are the actual testnet
+  example values published in ACINQ's own API reference.
+test_environment:
+  kind: bitcoin-testnet
+  hosted: false
+  cost: free (testnet coins have no value; testnet faucets are third-party)
+  parity_with_production: >-
+    Full — the same phoenixd/eclair binary and the same HTTP API, differing only in the
+    chain it connects to. There is no separate test endpoint, no mock layer and no
+    feature gap.
+  activation:
+  - product: phoenixd
+    flag: --chain=testnet
+    default: mainnet
+    choices: [mainnet, testnet]
+    source: https://github.com/ACINQ/phoenixd/blob/master/src/commonMain/kotlin/fr/acinq/phoenixd/Phoenixd.kt
+    note: >-
+      The chain choice maps to Chain.Mainnet / Chain.Testnet3 in the phoenixd source.
+      Seeds and databases live under ~/.phoenix, so a testnet instance should use a
+      separate --seed-path; ACINQ warns explicitly that a seed must NOT be shared
+      between Phoenix instances.
+  - product: eclair
+    config: 'eclair.chain=testnet in eclair.conf (with a matching testnet bitcoind)'
+    docs: https://github.com/ACINQ/eclair/blob/master/docs/Configure.md
+key_separation:
+  test_live_prefixes: false
+  note: >-
+    No test/live API key prefixes exist. The credential is a locally generated password
+    (http-password / eclair.api.password), identical in shape on both chains — so the
+    ONLY thing distinguishing a test instance from a production instance is the --chain
+    flag and the data directory. There is no accidental-production guard in the
+    credential itself, which is worth flagging for anyone automating against phoenixd.
+network_identification:
+  note: >-
+    Chain is discoverable at runtime, which is the safety check an agent should perform
+    before moving funds.
+  signals:
+  - {api: phoenixd HTTP API, endpoint: 'POST /decodeinvoice', field: chain, values: [mainnet, testnet]}
+  - {api: phoenixd HTTP API, endpoint: 'POST /decodeoffer', field: chain, values: [mainnet, testnet]}
+  - {kind: invoice-prefix, mainnet: lnbc, testnet: lntb, note: 'BOLT11 human-readable part; every example in the phoenixd reference uses lntb (testnet).'}
+  - {kind: address-prefix, mainnet: 'bc1', testnet: 'tb1', note: 'bech32/bech32m witness addresses.'}
+  - {kind: chain-hash, testnet: '43497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea330900000000', note: 'appears in channelUpdate.chainHash and decodeoffer chainHashes in the published examples.'}
+published_example_values:
+  note: >-
+    Verbatim testnet values from ACINQ's published API reference, usable for parsing and
+    decode tests (they are examples in the docs, not live payable requests).
+  values:
+  - {kind: lightning-address, value: 'flashybugle70@testnet.phoenixwallet.me', endpoint: 'POST /paylnaddress'}
+  - {kind: bitcoin-address, value: 'tb1qwnp38xc5qh35ch9l5p6a3r7kwupj9rw5a4jn3y', endpoint: 'POST /sendtoaddress'}
+  - {kind: bitcoin-address, value: 'tb1q2qlmx0t2g33tjgujr8h53dxmypuf8qps9jnv8q', source: https://phoenix.acinq.co/server/get-started}
+  - {kind: swap-in-address, value: 'tb1pyjfhx93wd0qf4dhe8fqgvqsfhef5ffr7e05gczn9yaluulu5jhxsp59dlr', endpoint: 'GET /getswapinaddress'}
+  - {kind: testnet-node-uri, value: '03933884aaf1d6b108397e5efe5c86bcf2d8ca8d2f700eda99db9214fc2712b134@endurance.acinq.co:9735', note: "ACINQ's public testnet node, used as the connect/open example in eclair's docs/API.md."}
+fixtures_and_triggers:
+  test_clock: false
+  time_simulation: false
+  trigger_tooling: false
+  note: >-
+    No test clock, no event-trigger CLI, no fixture generator, no decline simulator. To
+    exercise the receive path an integrator must actually pay their own testnet invoice
+    from a second wallet, and to exercise webhooks they must receive a real testnet
+    payment. This is the main gap versus a hosted payments sandbox.
+  workaround: >-
+    The webhook signature can be validated offline: ACINQ publishes a worked
+    HMAC-SHA256 example (body, secret, resulting X-Phoenix-Signature) at
+    https://phoenix.acinq.co/server/api, so signature verification can be unit-tested
+    without receiving a payment. See asyncapi/acinq-phoenixd-webhooks.yml.
+regtest:
+  note: >-
+    eclair's test suite and docs support a local regtest bitcoind for fully offline
+    development; this is a developer-facing capability of the codebase rather than a
+    documented product sandbox.
+  docs: https://github.com/ACINQ/eclair/blob/master/BUILD.md

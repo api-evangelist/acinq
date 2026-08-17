@@ -1,25 +1,160 @@
 aid: acinq
 name: Acinq
-description: 'Acinq is a company surfaced as a portfolio company of serena and added to the API Evangelist
-  network as a stub for enrichment. Sector: blockchain. This profile is a lead awaiting the enrichment
-  pipeline.'
+description: 'ACINQ is a Paris-based Bitcoin technology company and one of the principal
+  implementers of the Lightning Network. It builds and maintains eclair, a Scala Lightning
+  node with a 56-method JSON/HTTP API used for routing and channel management at scale;
+  phoenixd, a self-custodial Lightning server daemon that exposes a 27-endpoint HTTP
+  API plus websocket and HMAC-signed webhooks for merchants and applications; the Phoenix
+  self-custodial mobile wallet; and the Kotlin Multiplatform libraries lightning-kmp,
+  bitcoin-kmp and secp256k1-kmp published to Maven Central. ACINQ also operates its
+  own mainnet and testnet Lightning nodes and acts as a liquidity service provider.
+  Every API is self-hosted software rather than a vendor-hosted SaaS endpoint.'
 url: https://raw.githubusercontent.com/api-evangelist/acinq/refs/heads/main/apis.yml
+image: https://acinq.co/images/acinq-logo.svg
 x-type: company
 x-source: serena-portfolio
-x-tier: stub
-x-tier-reason: portfolio-lead
+x-api-base-note: >-
+  Both ACINQ APIs are SELF-HOSTED daemons, so no vendor-operated base URL exists and
+  baseURL is templated on purpose. ACINQ's published defaults are http://localhost:9740
+  for phoenixd (--http-bind-ip 127.0.0.1, --http-bind-port 9740) and http://localhost:8080
+  for eclair (eclair.api.port). repair-api-bases.py returns verdict `no-usable-base`
+  because every candidate is templated; that is the correct measurement of this provider,
+  not a gap to repair. Substituting a real ACINQ hostname would assert a hosted endpoint
+  that does not exist. Sources: https://phoenix.acinq.co/server/api and
+  https://acinq.github.io/eclair/.
 specificationVersion: '0.20'
 created: '2026-08-17'
 modified: '2026-08-17'
 tags:
 - Company
 - Blockchain
-apis: []
+- Bitcoin
+- Lightning Network
+- Payments
+- Open Source
+- Self-Custody
+- Node Software
+- Cryptocurrency
+- Developer Tools
+apis:
+- name: phoenixd HTTP API
+  description: 'The HTTP API of phoenixd, ACINQ''s self-custodial Lightning server
+    daemon. 27 documented endpoints covering Bolt11 invoices, Bolt12 offers, Lightning
+    addresses, on-chain sends and swap-in, payment history, channel management, invoice/offer
+    decoding, liquidity fee estimation and the three LNURL flows, plus a payments websocket
+    and configurable HMAC-signed webhooks. Authenticated with HTTP Basic using a primary
+    or limited-access password generated on first start. The daemon is operated by the
+    integrator, so the base URL is the integrator''s own host; the documented default
+    bind is 127.0.0.1:9740.'
+  humanURL: https://phoenix.acinq.co/server/api
+  baseURL: http://{phoenixd_host}:9740
+  tags:
+  - Lightning Network
+  - Payments
+  - Bitcoin
+  - Webhooks
+  properties:
+  - type: APIReference
+    url: https://phoenix.acinq.co/server/api
+  - type: GettingStarted
+    url: https://phoenix.acinq.co/server/get-started
+  - type: Documentation
+    url: https://phoenix.acinq.co/server
+  - type: SourceCode
+    url: https://github.com/ACINQ/phoenixd
+  - type: Webhooks
+    url: asyncapi/acinq-phoenixd-webhooks.yml
+- name: Eclair JSON API
+  description: 'The JSON/HTTP API of eclair, ACINQ''s Scala implementation of the Lightning
+    Network. 56 documented methods grouped into node info, connections, channel open/close/splice/RBF,
+    peers, network graph queries, payments (Bolt11 and Bolt12), route finding, on-chain
+    wallet operations, onion messaging, message signing and audit/balance reporting,
+    plus a payment-notification websocket at /ws. Requests are HTTP POST form data,
+    responses are JSON, and errors use a uniform {"error": "..."} envelope with 400/401/404/500
+    status codes. Authenticated with HTTP Basic (password only). Self-hosted; the documented
+    default port is 8080.'
+  humanURL: https://acinq.github.io/eclair/
+  baseURL: http://{eclair_host}:8080
+  tags:
+  - Lightning Network
+  - Bitcoin
+  - Node Software
+  - Routing
+  properties:
+  - type: APIReference
+    url: https://acinq.github.io/eclair/
+  - type: Documentation
+    url: https://github.com/ACINQ/eclair/blob/master/docs/API.md
+  - type: SourceCode
+    url: https://github.com/ACINQ/eclair
+  - type: ChangeLog
+    url: https://github.com/ACINQ/eclair/releases
 maintainers:
 - FN: Kin Lane
   email: kin@apievangelist.com
 - FN: APIs.json
   email: info@apis.io
 common:
+- type: DomainSecurity
+  url: security/acinq-domain-security.yml
 - type: Website
   url: https://acinq.co/
+- type: DeveloperPortal
+  url: https://phoenix.acinq.co/server
+- type: Documentation
+  url: https://acinq.github.io/eclair/
+- type: APIReference
+  url: https://phoenix.acinq.co/server/api
+- type: GettingStarted
+  url: https://phoenix.acinq.co/server/get-started
+- type: Support
+  url: https://phoenix.acinq.co/support
+- type: Blog
+  url: https://acinq.co/blog
+- type: GitHubOrganization
+  url: https://github.com/ACINQ
+- type: TermsOfService
+  url: https://phoenix.acinq.co/terms
+- type: PrivacyPolicy
+  url: https://phoenix.acinq.co/privacy
+- type: Pricing
+  url: https://phoenix.acinq.co/server/auto-liquidity
+- type: Security
+  url: https://github.com/ACINQ/eclair/blob/master/SECURITY.md
+- type: VulnerabilityDisclosure
+  url: security/acinq-vulnerability-disclosure.yml
+- type: ChangeLog
+  url: changelog/acinq-changelog.yml
+- type: Authentication
+  url: authentication/acinq-authentication.yml
+- type: Conventions
+  url: conventions/acinq-conventions.yml
+- type: ErrorCatalog
+  url: errors/acinq-problem-types.yml
+- type: Lifecycle
+  url: lifecycle/acinq-lifecycle.yml
+- type: Conformance
+  url: conformance/acinq-conformance.yml
+- type: DataModel
+  url: data-model/acinq-data-model.yml
+- type: Packages
+  url: packages/acinq-packages.yml
+- type: SDKs
+  url: packages/acinq-packages.yml
+- type: CLI
+  url: cli/acinq-cli.yml
+- type: Sandbox
+  url: sandbox/acinq-sandbox.yml
+- type: Plans
+  url: plans/acinq-plans-pricing.yml
+- type: RateLimits
+  url: rate-limits/acinq-rate-limits.yml
+- type: Webhooks
+  url: asyncapi/acinq-phoenixd-webhooks.yml
+- type: LLMsTxt
+  url: llms/acinq-llms.txt
+x-enrichment:
+  date: '2026-08-17'
+  status: enriched
+  artifacts_added: 18
+  pass: local-v1

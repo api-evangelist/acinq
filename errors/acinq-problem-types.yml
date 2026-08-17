@@ -1,0 +1,85 @@
+generated: '2026-08-17'
+method: searched
+source: https://acinq.github.io/eclair/#errors
+format: vendor-envelope
+notes: >-
+  NOT RFC 9457. eclair publishes a real, uniform error contract — a single JSON field
+  and four status codes — documented in the "Errors" section of its API reference. It
+  carries no `type` URI, no `title`, no `detail`, no `instance` and no machine-readable
+  error code, so a client can only branch on HTTP status; the message is free text.
+
+  phoenixd publishes NO error documentation at all. Its 27-endpoint reference documents
+  parameters and success responses only, with no status codes and no error body shape.
+  That gap is recorded below rather than filled — inventing phoenixd error types would
+  be fabrication.
+
+  Derived from ACINQ's published references, not from an OpenAPI: neither API ships a
+  machine-readable specification with 4xx/5xx response objects to derive from.
+envelope:
+  api: Eclair JSON API
+  shape: '{"error": "<message>"}'
+  example: '{"error": "Request is missing required form field ''description''"}'
+  content_type: application/json
+  uniform: true
+  source: https://acinq.github.io/eclair/#errors
+problems:
+- status: 400
+  name: Bad Request
+  title: Your request contains malformed or missing parameters
+  api: Eclair JSON API
+  envelope_field: error
+  remediation: >-
+    Check the required form fields for the method in the reference. The message names
+    the missing field verbatim.
+  source: https://acinq.github.io/eclair/#errors
+- status: 401
+  name: Unauthorized
+  title: Wrong or no auth supplied
+  api: Eclair JSON API
+  envelope_field: error
+  remediation: >-
+    Send HTTP Basic with an empty username and the eclair.api.password value, i.e.
+    `Authorization: Base64Encoded("":<eclair_api_password>)`. Confirm
+    eclair.api.enabled=true — the API is off by default.
+  ref: authentication/acinq-authentication.yml
+  source: https://acinq.github.io/eclair/#errors
+- status: 404
+  name: Not Found
+  title: The specified method could not be found
+  api: Eclair JSON API
+  envelope_field: error
+  remediation: >-
+    eclair addresses methods as POST /<methodname> with no version prefix. A 404 usually
+    means the method does not exist in the installed eclair release rather than that a
+    resource is missing — check the release notes for the version you run.
+  source: https://acinq.github.io/eclair/#errors
+- status: 500
+  name: Internal Server Error
+  title: We had a problem with our server. Try again later.
+  api: Eclair JSON API
+  envelope_field: error
+  remediation: >-
+    Retry. NOTE that no ACINQ API supports idempotency, so a blind retry of a
+    fund-moving method (payinvoice, payoffer, sendonchain, sendtonode, sendtoroute) can
+    double-spend intent. Reconcile with getsentinfo before retrying.
+  ref: conventions/acinq-conventions.yml
+  source: https://acinq.github.io/eclair/#errors
+gaps:
+- api: phoenixd HTTP API
+  finding: >-
+    No error documentation published. https://phoenix.acinq.co/server/api documents
+    parameters and success responses for all 27 endpoints and never states a status code
+    or an error body. A client integrating phoenixd has to discover error behaviour
+    empirically.
+  reference_checked: https://phoenix.acinq.co/server/api
+- api: both
+  finding: >-
+    No machine-readable error codes, no error type URIs, no per-error remediation links,
+    no RFC 9457 problem+json. Branching is limited to HTTP status plus free-text string
+    matching, which is not stable across releases.
+- api: both
+  finding: >-
+    Lightning payment failures (route not found, insufficient liquidity, HTLC timeout,
+    channel force-close) are the errors that actually matter for this domain and are not
+    catalogued as API errors anywhere in either reference. phoenixd surfaces some of
+    this only as payment state on GET /payments/outgoing (`isPaid: false`).

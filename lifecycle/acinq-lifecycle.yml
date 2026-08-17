@@ -1,0 +1,99 @@
+generated: '2026-08-17'
+method: searched
+source: https://github.com/ACINQ/eclair/releases
+docs:
+- https://github.com/ACINQ/eclair/releases
+- https://github.com/ACINQ/phoenixd/releases
+- https://github.com/ACINQ/eclair/tree/master/docs/release-notes
+notes: >-
+  ACINQ versions its APIs by SOFTWARE RELEASE, not by URL, header or date. There is no
+  /v1 path segment, no version header and no version negotiation on either API — the
+  contract a caller gets is whichever eclair or phoenixd binary the OPERATOR installed.
+  That inverts the usual lifecycle question: ACINQ cannot deprecate an endpoint out from
+  under an integrator, but an integrator also gets no vendor-managed upgrade path and no
+  sunset notice, because there is no vendor-hosted endpoint to sunset.
+
+  No StatusPage pointer is emitted: status.acinq.co does not resolve (NXDOMAIN) and no
+  status page is published or linked anywhere on acinq.co, phoenix.acinq.co or the
+  GitHub organization. No Deprecation pointer is emitted either: ACINQ ships per-release
+  "breaking changes" and "API changes" notes but publishes no deprecation POLICY, no
+  support window and no Sunset/Deprecation header support (RFC 8594).
+versioning:
+  scheme: software-release
+  semver: true
+  path_version: false
+  header_version: false
+  date_version: false
+  apis:
+  - api: Eclair JSON API
+    current: v0.14.1
+    released: '2026-07-29'
+    cadence: 'roughly 2-4 releases per year (v0.9.0 2023-06-19, v0.10.0 2024-02-29, v0.11.0 2024-12-04, v0.12.0 2025-03-11, v0.13.0 2025-09-10, v0.13.1 2025-10-27, v0.14.0 2026-05-21, v0.14.1 2026-07-29)'
+    docs: https://github.com/ACINQ/eclair/releases
+  - api: phoenixd HTTP API
+    current: v0.9.0
+    released: '2026-07-13'
+    documented_version: 'the API reference states it is "up-to-date for version 0.9.0"'
+    cadence: 'roughly 4-6 releases per year (v0.6.2 2025-07-31, v0.6.3 2025-10-02, v0.7.0 2025-10-28, v0.7.1 2025-11-10, v0.7.2 2026-01-20, v0.7.3 2026-03-19, v0.8.0 2026-05-20, v0.9.0 2026-07-13)'
+    docs: https://github.com/ACINQ/phoenixd/releases
+  ref: changelog/acinq-changelog.yml
+deprecation:
+  policy_url: null
+  policy_published: false
+  sunset_header: false
+  deprecation_header: false
+  support_window: null
+  note: >-
+    No deprecation policy, no support window, no RFC 8594 headers. Breaking changes are
+    announced per release in docs/release-notes/eclair-v*.md (eclair) and in the GitHub
+    release notes (phoenixd), which is real communication but not a policy an integrator
+    can plan against.
+  deprecated_operations:
+  - api: phoenixd HTTP API
+    operation: 'GET /getoffer'
+    replacement: 'POST /createoffer'
+    evidence: >-
+      The API reference states verbatim: "a getoffer call is also available but it is
+      deprecated. This getoffer endpoint returns an offer, but always the same one.
+      createoffer should be used instead."
+    sunset_date: null
+    source: https://phoenix.acinq.co/server/api
+  - api: phoenixd HTTP API
+    operation: '--max-absolute-fee (CLI option)'
+    replacement: '--max-mining-fee'
+    evidence: 'marked deprecated with error = true in the phoenixd source, so it now fails hard rather than warning.'
+    source: https://github.com/ACINQ/phoenixd/blob/master/src/commonMain/kotlin/fr/acinq/phoenixd/Phoenixd.kt
+sla:
+  url: null
+  uptime_target: null
+  note: >-
+    No SLA is published, and for the self-hosted APIs an ACINQ SLA would be meaningless —
+    availability is the operator's. ACINQ does state on https://acinq.co/node that it
+    "actively maintain[s] and balance[s] channels with other nodes on the network" and
+    runs and monitors its own mainnet and testnet Lightning nodes, but attaches no
+    availability commitment to that, and the LSP role (liquidity, fee credit) carries no
+    published uptime target.
+status_page:
+  url: null
+  published: false
+  evidence:
+  - {url: 'https://status.acinq.co/', status: 'DNS NXDOMAIN'}
+  note: 'No status page. No StatusPage pointer emitted.'
+maintenance_signals:
+  active:
+  - {repo: ACINQ/eclair, last_push: '2026-08-17', stars: 1342, archived: false}
+  - {repo: ACINQ/lightning-kmp, last_push: '2026-08-17', stars: 118, archived: false}
+  - {repo: ACINQ/bitcoin-kmp, last_push: '2026-08-17', stars: 89, archived: false}
+  - {repo: ACINQ/phoenixd, last_push: '2026-07-13', stars: 180, archived: false}
+  - {repo: ACINQ/phoenix, last_push: '2026-07-08', stars: 859, archived: false}
+  - {repo: ACINQ/secp256k1-kmp, last_push: '2026-08-13', stars: 72, archived: false}
+  - {repo: ACINQ/bitcoin-lib, last_push: '2026-08-03', stars: 113, archived: false}
+  archived_or_stale:
+  - {repo: ACINQ/eclair-mobile, last_push: '2022-03-01', archived: true, note: superseded by Phoenix}
+  - {repo: ACINQ/phoenix-kmm, last_push: '2022-09-22', archived: true, note: folded into ACINQ/phoenix}
+  - {repo: ACINQ/tor-mobile-kmp, last_push: '2025-02-12', archived: true}
+  - {repo: ACINQ/eclair-cli, last_push: '2023-09-08', archived: false, note: 'Kotlin CLI, no commits in ~3 years; the bash eclair-cli in the eclair repo is the maintained one'}
+  summary: >-
+    The core surface is actively maintained — eclair, lightning-kmp and bitcoin-kmp all
+    saw commits on 2026-08-17, the date of this pass. The standalone Kotlin eclair-cli
+    and the mobile predecessors are the stale corners.

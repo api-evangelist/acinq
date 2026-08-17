@@ -1,0 +1,104 @@
+generated: '2026-08-17'
+method: searched
+source: https://search.maven.org/solrsearch/select?q=g:fr.acinq*
+notes: >-
+  ACINQ ships its client/library surface to Maven Central under the fr.acinq* group
+  namespace. There is NO first-party npm, PyPI, RubyGems, crates.io, Packagist or NuGet
+  package: an npm registry search for "acinq" returns only third-party wrappers
+  (phoenixd-mcp-server, phoenixd-client, eclair-ts, eclair-rpc) published by
+  unaffiliated maintainers, and pypi.org/pypi/phoenixd/json and /acinq/json both
+  return 404. The phoenixd and eclair binaries themselves are distributed as GitHub
+  release archives rather than through a language registry, and are catalogued in
+  cli/acinq-cli.yml. Versions and publish dates below were read from the Maven Central
+  solrsearch metadata endpoint on 2026-08-17.
+packages:
+- language: kotlin
+  registry: maven
+  name: fr.acinq.lightning:lightning-kmp-core
+  url: https://central.sonatype.com/artifact/fr.acinq.lightning/lightning-kmp-core
+  install: implementation("fr.acinq.lightning:lightning-kmp-core:1.10.2")
+  official: true
+  version: 1.10.2
+  published: '2025-05-12'
+  repo: https://github.com/ACINQ/lightning-kmp
+  note: >-
+    Kotlin Multiplatform implementation of the Lightning Network — the engine behind
+    the Phoenix wallet and phoenixd. Published for jvm, linuxX64, linuxArm64, macosX64,
+    macosArm64, iosArm64, iosX64 and iosSimulatorArm64 targets. The older umbrella
+    artifact fr.acinq.lightning:lightning-kmp last published 1.8.4 on 2024-10-17 and
+    is superseded by the -core coordinates.
+- language: kotlin
+  registry: maven
+  name: fr.acinq.bitcoin:bitcoin-kmp
+  url: https://central.sonatype.com/artifact/fr.acinq.bitcoin/bitcoin-kmp
+  install: implementation("fr.acinq.bitcoin:bitcoin-kmp:0.24.0")
+  official: true
+  version: 0.24.0
+  published: '2025-06-04'
+  repo: https://github.com/ACINQ/bitcoin-kmp
+  note: Kotlin Multiplatform Bitcoin library, published across jvm, native and iOS targets.
+- language: kotlin
+  registry: maven
+  name: fr.acinq.secp256k1:secp256k1-kmp
+  url: https://central.sonatype.com/artifact/fr.acinq.secp256k1/secp256k1-kmp
+  install: implementation("fr.acinq.secp256k1:secp256k1-kmp:0.17.3")
+  official: true
+  version: 0.17.3
+  published: '2025-04-11'
+  repo: https://github.com/ACINQ/secp256k1-kmp
+  note: >-
+    Kotlin Multiplatform bindings for the Bitcoin secp256k1 C library, including JNI
+    variants for jvm-linux, jvm-darwin, jvm-mingw and Android.
+- language: scala
+  registry: maven
+  name: fr.acinq:bitcoin-lib_2.13
+  url: https://central.sonatype.com/artifact/fr.acinq/bitcoin-lib_2.13
+  install: libraryDependencies += "fr.acinq" %% "bitcoin-lib" % "0.40"
+  official: true
+  version: '0.40'
+  published: '2025-06-04'
+  repo: https://github.com/ACINQ/bitcoin-lib
+  note: >-
+    Scala Bitcoin library used by eclair. Cross-built historically for 2.11 (0.19) and
+    2.12 (0.9.17); 2.13 is the current line.
+- language: kotlin
+  registry: maven
+  name: fr.acinq.tor:tor-mobile-kmp
+  url: https://central.sonatype.com/artifact/fr.acinq.tor/tor-mobile-kmp
+  official: true
+  version: 0.2.0
+  published: '2023-03-27'
+  repo: https://github.com/ACINQ/tor-mobile-kmp
+  status: archived
+  note: >-
+    The GitHub repository ACINQ/tor-mobile-kmp is archived and the last Maven release
+    is 0.2.0 from 2023-03-27. Recorded as an abandonment signal, not as a recommended
+    dependency.
+unofficial_wrappers:
+  note: >-
+    Recorded for accuracy only — these are NOT ACINQ packages and must not be counted
+    as first-party SDKs.
+  packages:
+  - registry: npm
+    name: phoenixd-mcp-server
+    version: 1.2.0
+    published: '2026-03-22'
+    url: https://github.com/Sharmaz/phoenixd-mcp-server
+    official: false
+  - registry: npm
+    name: phoenixd-client
+    version: 1.0.0
+    published: '2025-07-29'
+    official: false
+  - registry: npm
+    name: eclair-ts
+    version: 0.0.3
+    published: '2021-01-21'
+    official: false
+registries_checked:
+- {registry: maven, result: '68 fr.acinq* artifacts found'}
+- {registry: npm, result: no first-party package; third-party wrappers only}
+- {registry: pypi, result: '404 for phoenixd and acinq'}
+- {registry: rubygems, result: not published}
+- {registry: crates.io, result: not published}
+- {registry: nuget, result: 'not published by ACINQ (a community phoenixd BTCPay plugin exists at ACINQ/phoenixd-btcpayserver-plugin as source only)'}

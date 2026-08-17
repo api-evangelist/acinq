@@ -1,0 +1,159 @@
+generated: '2026-08-17'
+method: derived
+source: https://phoenix.acinq.co/server/api
+docs:
+- https://phoenix.acinq.co/server/api
+- https://acinq.github.io/eclair/
+notes: >-
+  DERIVED from the request parameters and response bodies published verbatim in ACINQ's
+  own API references — there is no OpenAPI to read $ref links from, so relationships are
+  read off the identifier fields that actually appear in the documented payloads. Every
+  field named below appears in a published example or parameter list; nothing is inferred
+  from naming alone.
+
+  The model is small and identifier-centric. There is no customer, account, tenant, user
+  or subscription entity anywhere in either API — a phoenixd or eclair instance IS the
+  single account. That is the defining shape of a self-custodial API: the wallet is the
+  tenant, and multi-tenancy has to be built by the integrator on top of `externalId`.
+entities:
+- name: Node
+  api: both
+  description: The Lightning node this API instance controls. Exactly one per daemon instance.
+  primary_key: nodeId
+  id_format: 33-byte compressed secp256k1 public key, hex (66 chars, leading 02/03)
+  fields: [nodeId, channels]
+  read_via: ['phoenixd GET /getinfo', 'eclair getinfo']
+- name: Balance
+  api: both
+  description: Spendable value held by the node, split across Lightning balance and the non-refundable fee credit.
+  fields: [balanceSat, feeCreditSat]
+  read_via: ['phoenixd GET /getbalance', 'eclair globalbalance / channelbalances / usablebalances / onchainbalance']
+  note: 'feeCreditSat is NOT part of the balance and is non-refundable — see plans/acinq-plans-pricing.yml.'
+- name: Channel
+  api: both
+  description: A funded payment channel with a peer, carrying inbound and outbound liquidity.
+  primary_key: channelId
+  id_format: 32-byte hex (64 chars)
+  alternate_keys: [shortChannelId, fundingTxId]
+  fields: [state, channelId, balanceSat, inboundLiquiditySat, capacitySat, fundingTxId, shortChannelId, channelUpdate, commitments]
+  states_observed: [Normal]
+  read_via: ['phoenixd GET /listchannels', 'phoenixd GET /getinfo (compact form)', 'eclair channels / channel / closedchannels']
+  write_via: ['phoenixd POST /closechannel', 'eclair open / close / forceclose / splicein / spliceout / rbfopen / rbfsplice']
+- name: IncomingPayment
+  api: phoenixd HTTP API
+  description: A payment received (or an invoice awaiting payment) by this node.
+  primary_key: paymentHash
+  id_format: 32-byte hex (64 chars)
+  fields: [type, subType, paymentHash, preimage, description, invoice, isPaid, isExpired, requestedSat, receivedSat, fees, expiresAt, completedAt, createdAt, externalId, payerKey, payerNote]
+  subTypes_observed: [lightning]
+  read_via: ['GET /payments/incoming', 'GET /payments/incoming/{paymentHash}']
+  write_via: ['POST /createinvoice', 'POST /createoffer']
+  note: >-
+    receivedSat can EXCEED requestedSat (ACINQ's own example annotates a 50 sat
+    overpayment), so a reconciliation routine must not assume equality.
+- name: OutgoingPayment
+  api: phoenixd HTTP API
+  description: A payment sent by this node, or a liquidity purchase debited from it.
+  primary_key: paymentId
+  id_format: UUID v4
+  alternate_keys: [paymentHash, txId]
+  fields: [type, subType, paymentId, paymentHash, preimage, txId, isPaid, sent, fees, invoice, completedAt, createdAt]
+  subTypes_observed: [lightning, auto_liquidity]
+  read_via: ['GET /payments/outgoing', 'GET /payments/outgoing/{paymentId}', 'GET /payments/outgoingbyhash/{paymentHash}']
+  write_via: ['POST /payinvoice', 'POST /payoffer', 'POST /paylnaddress', 'POST /sendtoaddress', 'POST /lnurlpay']
+  note: >-
+    TWO identifiers, and they are not interchangeable. paymentId is phoenixd's internal
+    UUID and is what /payinvoice returns; paymentHash is the Lightning protocol
+    identifier. ACINQ provides a separate lookup route for each, which is the clearest
+    evidence that clients need both.
+- name: Invoice
+  api: both
+  description: A BOLT11 payment request — single-use, expiring.
+  primary_key: paymentHash
+  serialized_form: 'BOLT11 bech32 string (lnbc… mainnet, lntb… testnet)'
+  fields: [chain, amount, paymentHash, description, minFinalCltvExpiryDelta, paymentSecret, paymentMetadata, extraHops, features, timestampSeconds, expirySeconds]
+  write_via: ['phoenixd POST /createinvoice', 'eclair createinvoice']
+  read_via: ['phoenixd POST /decodeinvoice', 'eclair parseinvoice / getinvoice / listinvoices / listpendinginvoices']
+- name: Offer
+  api: both
+  description: A BOLT12 offer — static, reusable, non-expiring payment request.
+  serialized_form: 'BOLT12 bech32 string (lno1…)'
+  fields: [chain, chainHashes, path, description, amountSat]
+  write_via: ['phoenixd POST /createoffer', 'eclair createoffer / disableoffer']
+  read_via: ['phoenixd POST /decodeoffer', 'eclair parseoffer / listoffers']
+  deprecated_read: 'phoenixd GET /getoffer (deprecated in favour of /createoffer)'
+- name: LightningAddress
+  api: phoenixd HTTP API
+  description: A BIP-353 email-shaped address resolving to this node, issued by the LSP.
+  id_format: '₿<name>@<domain> (e.g. ₿purplecrocus03@phoenixwallet.me)'
+  read_via: ['GET /getlnaddress']
+  pay_via: ['POST /paylnaddress']
+  note: 'Requires an existing channel. Third-party or self-hosted address providers are also supported.'
+- name: OnChainAddress
+  api: both
+  description: A Bitcoin address for on-chain receive or swap-in.
+  fields: [address, index]
+  read_via: ['phoenixd GET /getswapinaddress', 'eclair getnewaddress']
+  spend_via: ['phoenixd POST /sendtoaddress', 'eclair sendonchain']
+- name: Transaction
+  api: both
+  description: An on-chain Bitcoin transaction produced by a splice, close or on-chain send.
+  primary_key: txId
+  id_format: 32-byte hex (64 chars)
+  returned_by: ['POST /sendtoaddress', 'POST /bumpfee', 'POST /closechannel', 'eclair spliceout / close / sendonchain']
+  note: 'These endpoints return the bare txid as a plain string, not a JSON object.'
+- name: LiquidityFeeEstimate
+  api: phoenixd HTTP API
+  description: A pre-commit quote for purchasing inbound liquidity.
+  fields: [miningFeeSat, serviceFeeSat]
+  read_via: ['GET /estimateliquidityfees?amountSat=']
+- name: Peer
+  api: Eclair JSON API
+  description: A remote Lightning node this node has a connection or channels with.
+  primary_key: nodeId
+  read_via: [peers, nodes, node]
+  write_via: [connect, disconnect]
+- name: NetworkGraph
+  api: Eclair JSON API
+  description: The public Lightning network graph as this node sees it.
+  read_via: [allchannels, allupdates, nodes]
+  route_via: [findroute, findroutetonode, findroutebetweennodes]
+- name: PaymentEvent
+  api: phoenixd HTTP API
+  description: A payment_received notification delivered over websocket or webhook.
+  fields: [type, timestamp, amountSat, paymentHash, externalId, payerNote, payerKey]
+  ref: asyncapi/acinq-phoenixd-webhooks.yml
+relationships:
+- {from: Node, to: Channel, kind: has_many, via: channels}
+- {from: Node, to: Balance, kind: has_one, via: 'GET /getbalance'}
+- {from: Channel, to: Transaction, kind: belongs_to, via: fundingTxId}
+- {from: Channel, to: Peer, kind: belongs_to, via: 'commitments.params.remoteParams.nodeId'}
+- {from: IncomingPayment, to: Invoice, kind: has_one, via: 'paymentHash (and the serialized invoice field)'}
+- {from: IncomingPayment, to: Offer, kind: has_one, via: 'payerKey (Bolt12 payments carry payerKey/payerNote instead of an invoice)'}
+- {from: OutgoingPayment, to: Invoice, kind: has_one, via: invoice}
+- {from: OutgoingPayment, to: Transaction, kind: has_one, via: 'txId (on-chain and auto_liquidity subTypes only)'}
+- {from: OutgoingPayment, to: Channel, kind: belongs_to, via: 'implicit — auto_liquidity payments fund a channel splice'}
+- {from: PaymentEvent, to: IncomingPayment, kind: has_one, via: paymentHash}
+- {from: IncomingPayment, to: ExternalSystem, kind: belongs_to, via: externalId}
+- {from: LightningAddress, to: Channel, kind: belongs_to, via: 'requires an existing channel to be issued'}
+identifier_reference:
+- {id: nodeId, format: 66-char hex secp256k1 pubkey, entity: Node/Peer}
+- {id: channelId, format: 64-char hex, entity: Channel}
+- {id: shortChannelId, format: 'blockxtxxoutput (e.g. 0x741006x0 or 16734014x14719942x36770)', entity: Channel}
+- {id: paymentHash, format: 64-char hex (sha256 of the preimage), entity: IncomingPayment/OutgoingPayment/Invoice}
+- {id: preimage, format: 64-char hex, entity: 'IncomingPayment/OutgoingPayment — the payment proof'}
+- {id: paymentId, format: UUID, entity: OutgoingPayment (phoenixd internal)}
+- {id: txId, format: 64-char hex, entity: Transaction}
+- {id: externalId, format: 'caller-supplied free-form string', entity: 'IncomingPayment — the only integration-owned identifier in the model'}
+- {id: payerKey, format: 66-char hex pubkey, entity: 'IncomingPayment (Bolt12)'}
+absent_entities:
+  note: >-
+    Recorded deliberately. These entities do NOT exist in either API, and their absence
+    is the model's most important property for anyone sizing an integration.
+  entities: [Customer, Account, User, Tenant, Organization, Subscription, Refund, Dispute, Payout, Webhook (as a resource), ApiKey (as a resource)]
+  implication: >-
+    Multi-user or multi-merchant systems must be modelled entirely in the integrator's
+    own database, keyed on `externalId`, against a single-wallet API. There is also no
+    refund or dispute primitive — Lightning payments are final, so reversal is a new
+    outgoing payment, not a state change on the original.
+render: null
