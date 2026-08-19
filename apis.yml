@@ -22,7 +22,7 @@ x-api-base-note: >-
   not a gap to repair. Substituting a real ACINQ hostname would assert a hosted endpoint
   that does not exist. Sources: https://phoenix.acinq.co/server/api and
   https://acinq.github.io/eclair/.
-specificationVersion: '0.20'
+specificationVersion: '0.23'
 created: '2026-08-17'
 modified: '2026-08-17'
 tags:
