@@ -31,6 +31,17 @@ tags:
 - Bitcoin
 - Lightning Network
 - Payments
+- Open-Source
+- Self-Custody
+- Node Software
+- Cryptocurrency
+- Developer Tools
+tags_raw:
+- Company
+- Blockchain
+- Bitcoin
+- Lightning Network
+- Payments
 - Open Source
 - Self-Custody
 - Node Software
@@ -49,6 +60,11 @@ apis:
   humanURL: https://phoenix.acinq.co/server/api
   baseURL: http://{phoenixd_host}:9740
   tags:
+  - Lightning Network
+  - Payments
+  - Bitcoin
+  - Webhook
+  tags_raw:
   - Lightning Network
   - Payments
   - Bitcoin
