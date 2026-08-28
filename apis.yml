@@ -10,6 +10,18 @@ description: 'ACINQ is a Paris-based Bitcoin technology company and one of the p
   own mainnet and testnet Lightning nodes and acts as a liquidity service provider.
   Every API is self-hosted software rather than a vendor-hosted SaaS endpoint.'
 url: https://raw.githubusercontent.com/api-evangelist/acinq/refs/heads/main/apis.yml
+deliveryModel:
+  model: unknown
+  open_source: unknown
+  commercial: true
+  callable_host: false
+  label: Delivery model not determined — needs a product licence on record
+  confidence: low
+  source:
+  - pricing
+  - repository-unlicensed
+  generated: '2026-08-28'
+  method: derived
 image: https://acinq.co/images/acinq-logo.svg
 x-type: company
 x-source: serena-portfolio
