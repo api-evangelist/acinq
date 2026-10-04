@@ -58,7 +58,7 @@ tags:
 - Bitcoin
 - Lightning Network
 - Payments
-- Open-Source
+- Open Source
 - Self-Custody
 - Node Software
 - Cryptocurrency
@@ -74,6 +74,7 @@ tags_raw:
 - Node Software
 - Cryptocurrency
 - Developer Tools
+- Open-Source
 apis:
 - name: phoenixd HTTP API
   description: 'The HTTP API of phoenixd, ACINQ''s self-custodial Lightning server
