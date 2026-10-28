@@ -64,6 +64,114 @@
 > Full detail: **[Where this data comes from](https://apievangelist.com/about/where-our-data-comes-from)**
 <!-- API-EVANGELIST-PROVENANCE:END -->
 
-Acinq is a company surfaced as a portfolio company of serena and added to the API Evangelist network as a stub for enrichment. Sector: blockchain. This profile is a lead awaiting the enrichment pipeline.
+ACINQ is a Paris-based Bitcoin technology company and one of the principal implementers of the Lightning Network. It builds and maintains eclair, a Scala Lightning node with a 56-method JSON/HTTP API used for routing and channel management at scale; phoenixd, a self-custodial Lightning server daemon that exposes a 27-endpoint HTTP API plus websocket and HMAC-signed webhooks for merchants and applications; the Phoenix self-custodial mobile wallet; and the Kotlin Multiplatform libraries lightning-kmp, bitcoin-kmp and secp256k1-kmp published to Maven Central. ACINQ also operates its own mainnet and testnet Lightning nodes and acts as a liquidity service provider. Every API is self-hosted software rather than a vendor-hosted SaaS endpoint.
 
-Source: portfolio company of [serena](https://github.com/api-evangelist/serena) — https://acinq.co/
+**Areas:** Company · Blockchain · Bitcoin · Lightning Network · Payments · Open Source · Self-Custody · Node Software · Cryptocurrency · Developer Tools
+
+## Acinq on APIs.io
+
+Everything profiled for Acinq is published on APIs.io rather than in this repository. Start at the provider page — **[apis.io/providers/acinq/](https://apis.io/providers/acinq/)** — or go straight to one of the APIs or properties below.
+
+### APIs (2)
+
+- [phoenixd HTTP API](https://apis.io/apis/acinq/phoenixd-http-api/) — The HTTP API of phoenixd, ACINQ's self-custodial Lightning server daemon. 27 documented endpoints covering Bolt11 invoices, Bolt12 offers, Lightning…
+- [Eclair JSON API](https://apis.io/apis/acinq/eclair-json-api/) — The JSON/HTTP API of eclair, ACINQ's Scala implementation of the Lightning Network. 56 documented methods grouped into node info, connections, channel…
+
+### Published properties
+
+Each property below is a page on APIs.io carrying the machine-readable artifact and what it says.
+
+#### AsyncAPI (1)
+
+Event-driven and webhook contracts.
+
+- [Acinq Phoenixd Webhooks](https://apis.io/asyncapis/acinq/acinq-phoenixd-webhooks/)
+
+#### Security (3)
+
+Authentication, trust centre, and vulnerability disclosure.
+
+- [Acinq Authentication](https://apis.io/security/acinq/acinq-authentication/)
+- [Acinq Domain Security](https://apis.io/security/acinq/acinq-domain-security/)
+- [Acinq Vulnerability Disclosure](https://apis.io/security/acinq/acinq-vulnerability-disclosure/)
+
+#### Plans and pricing (1)
+
+Published plans, tiers and prices.
+
+- [Acinq Plans Pricing](https://apis.io/plans/acinq/acinq-plans-pricing/)
+
+#### Rate limits (1)
+
+Published request limits.
+
+- [Acinq Rate Limits](https://apis.io/rate-limits/acinq/acinq-rate-limits/)
+
+## Where to find this API
+
+Links to the company's own pages. This repository publishes no copy of their specifications — the canonical document is theirs and lives at the URLs below.
+
+- [Website](https://acinq.co/)
+- [Documentation](https://acinq.github.io/eclair/)
+- [Getting started](https://phoenix.acinq.co/server/get-started)
+- [API reference](https://phoenix.acinq.co/server/api)
+- [Pricing](https://phoenix.acinq.co/server/auto-liquidity)
+- [Support](https://phoenix.acinq.co/support)
+- [Blog](https://acinq.co/blog)
+- [Security](https://github.com/ACINQ/eclair/blob/master/SECURITY.md)
+- [Terms of service](https://phoenix.acinq.co/terms)
+- [Privacy policy](https://phoenix.acinq.co/privacy)
+- [GitHub](https://github.com/ACINQ)
+
+## API Evangelist rating
+
+**Kin Score 46.8** — developing · rubric 0.24.0 · scored 2026-10-17
+
+| Facet | Score |
+|---|---|
+| Discoverability | 73.2 |
+| Contract quality | 39.0 |
+| Contract governance | 18.2 |
+| Operational transparency | 36.8 |
+| Developer ergonomics | 76.2 |
+| Access clarity | 31.6 |
+
+**Agent readiness 25.2** — agent-aware
+
+| Agent-readiness dimension | Result |
+|---|---|
+| Spec Presence | yes |
+| Agentic Access | — |
+| Reversibility Documented | — |
+| MCP Server | — |
+| Auth Clarity | bearer (partial credit) |
+| Idempotency | — |
+| Error Semantics | documented (partial credit) |
+| OpenAPI Examples | — |
+| Rate Limit Signal | documented (partial credit) |
+| Event Surface Described | yes |
+| Agent Skills | — |
+| Well Known Catalog | — |
+| Consent Identity | — |
+| Agent Card | — |
+| Dry Run Mode | — |
+| Delegated Identity | — |
+| Protected Resource Metadata | — |
+| Dynamic Client Registration | — |
+| Agentic Commerce | — |
+
+**Regulatory alignment 27.7** — Payments
+
+The rubric is published at [github.com/api-evangelist/kin-score](https://github.com/api-evangelist/kin-score). The per-check breakdown behind these numbers — which checks were earned, partial or missed — along with score history and how this provider compares to its peers, is available at [apis.io/providers/acinq/](https://apis.io/providers/acinq/).
+
+## How this profile is made
+
+API Evangelist profiles a company's public API surface the way a developer would find it: the website, developer portal and documentation, the specifications it publishes, its public repositories, and its pricing, status and changelog pages. From that it derives the properties above — contracts split per API, workflows, schemas, collections, governance rules, plans and rate limits — and scores them against the published [Kin Score rubric](https://github.com/api-evangelist/kin-score).
+
+The artifacts are published on [APIs.io](https://apis.io), not in this repository. This repository is the public record for Acinq: the place to say something is wrong, missing or out of date, and to ask for a re-score or a removal.
+
+## Open an issue
+
+- **Something about this listing** — a wrong description, a missing API, a stale artifact or a question about the rating: [open an issue on this repository](https://github.com/api-evangelist/acinq/issues/new).
+- **A new API, or one that is not in the catalog yet** — [submit it on APIs.io](https://apis.io/add/).
+- **Anything else** — [the APIs.io inbox](https://github.com/api-search/inbox/issues/new) or [info@apievangelist.com](mailto:info@apievangelist.com).
